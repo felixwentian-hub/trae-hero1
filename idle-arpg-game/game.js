@@ -1,1333 +1,589 @@
 // 游戏状态管理
 class GameState {
     constructor() {
-        // 角色数据
         this.character = {
             level: 1,
-            hp: 150, // 增强基础生命值
-            maxHp: 150,
-            attack: 15, // 增强基础攻击力
-            exp: 0,
-            maxExp: 100,
-            upgradePoints: 0,
-            shield: 0, // 护盾值
-            criticalRate: 0.15 // 基础暴击率15%
-        };
-        
-        // 当前敌人数据
-        this.currentEnemy = null;
-        
-        // 敌人模板
-        this.enemyTemplates = [
-            { name: '史莱姆', hp: 50, attack: 8, expReward: 20, emoji: '🟢' },
-            { name: '哥布林', hp: 80, attack: 12, expReward: 35, emoji: '👺' },
-            { name: '骷髅战士', hp: 120, attack: 15, expReward: 50, emoji: '💀' },
-            { name: '兽人', hp: 180, attack: 20, expReward: 75, emoji: '👹' },
-            { name: '巨魔', hp: 250, attack: 25, expReward: 100, emoji: '🧌' }
-        ];
-        
-        // BOSS敌人模板
-        this.bossTemplates = [
-            { name: '史莱姆王', hp: 300, attack: 35, expReward: 200, emoji: '👑', level: 5, isBoss: true, skills: ['毒液喷射'] },
-            { name: '哥布林酋长', hp: 500, attack: 50, expReward: 350, emoji: '🗿', level: 10, isBoss: true, skills: ['战吼', '重击'] },
-            { name: '骷髅领主', hp: 750, attack: 65, expReward: 500, emoji: '☠️', level: 15, isBoss: true, skills: ['死亡凝视', '骨矛'] },
-            { name: '兽人王', hp: 1000, attack: 80, expReward: 750, emoji: '👹', level: 20, isBoss: true, skills: ['狂暴', '地震'] },
-            { name: '古代巨魔', hp: 1500, attack: 100, expReward: 1200, emoji: '🧌', level: 25, isBoss: true, skills: ['再生', '巨石投掷'] }
-        ];
-        
-        // BOSS战斗状态
-        this.bossState = {
-            isBossFight: false,
-            bossDefeatedCount: 0,
-            nextBossLevel: 5,
-            bossSkillCooldown: 0
-        };
-        
-        // 成就系统
-        this.achievements = {
-            firstKill: { name: '初次击杀', description: '击败第一个敌人', unlocked: false, reward: 10 },
-            bossSlayer: { name: 'BOSS杀手', description: '击败第一个BOSS', unlocked: false, reward: 50 },
-            comboMaster: { name: '连击大师', description: '达到10连击', unlocked: false, reward: 25 },
-            skillMaster: { name: '技能大师', description: '将任意技能升级到满级', unlocked: false, reward: 100 },
-            survivor: { name: '幸存者', description: '生命值降到10以下后存活', unlocked: false, reward: 30 },
-            levelUp10: { name: '十级战士', description: '达到10级', unlocked: false, reward: 75 }
-        };
-        
-        // 游戏循环定时器
-        this.gameLoop = null;
-        this.battleLogMessages = [];
-        
-        // 技能系统（包含升级系统）
-        this.skills = {
-            fireball: {
-                name: '火球术',
-                icon: '🔥',
-                level: 1,
-                maxLevel: 5,
-                baseDamage: 35,
-                get damage() { return this.baseDamage + (this.level - 1) * 15; },
-                cooldown: 4000, // 减少冷却时间
-                lastUsed: 0,
-                description: '发射火球造成高额伤害'
-            },
-            heal: {
-                name: '治疗术',
-                icon: '💚',
-                level: 1,
-                maxLevel: 5,
-                baseHealAmount: 45,
-                get healAmount() { return this.baseHealAmount + (this.level - 1) * 20; },
-                cooldown: 6000, // 减少冷却时间
-                lastUsed: 0,
-                description: '恢复生命值'
-            },
-            critical: {
-                name: '暴击攻击',
-                icon: '⚡',
-                level: 1,
-                maxLevel: 5,
-                get multiplier() { return 3.0 + (this.level - 1) * 0.5; },
-                cooldown: 5000, // 减少冷却时间
-                lastUsed: 0,
-                description: '下次攻击造成暴击伤害'
-            },
-            lightningChain: {
-                name: '闪电链',
-                icon: '⚡',
-                level: 1,
-                maxLevel: 5,
-                baseDamage: 40,
-                get damage() { return this.baseDamage + (this.level - 1) * 18; },
-                chainCount: 3,
-                cooldown: 8000,
-                lastUsed: 0,
-                description: '释放闪电链，造成连锁伤害'
-            },
-            shield: {
-                name: '护盾术',
-                icon: '🛡️',
-                level: 1,
-                maxLevel: 5,
-                baseShieldAmount: 50,
-                get shieldAmount() { return this.baseShieldAmount + (this.level - 1) * 30; },
-                duration: 15000, // 15秒持续时间
-                cooldown: 12000,
-                lastUsed: 0,
-                description: '为英雄提供护盾，吸收伤害'
-            },
-            berserk: {
-                name: '狂暴模式',
-                icon: '🔥',
-                level: 1,
-                maxLevel: 5,
-                get attackBonus() { return 2.0 + (this.level - 1) * 0.2; },
-                speedBonus: 0.5,
-                get duration() { return 10000 + (this.level - 1) * 2000; },
-                cooldown: 20000,
-                lastUsed: 0,
-                description: '进入狂暴状态，大幅提升攻击力和速度'
-            },
-            lifeDrain: {
-                name: '生命汲取',
-                icon: '🩸',
-                level: 1,
-                maxLevel: 5,
-                get drainPercent() { return 0.3 + (this.level - 1) * 0.15; },
-                get duration() { return 8000 + (this.level - 1) * 3000; },
-                cooldown: 15000,
-                lastUsed: 0,
-                description: '攻击时恢复自身生命值'
-            }
-        };
-        
-        // 战斗状态
-        this.combatState = {
-            nextAttackIsCritical: false,
-            comboCount: 0,
-            lastAttackTime: 0,
-            berserkActive: false,
-            berserkEndTime: 0,
-            lifeDrainActive: false,
-            lifeDrainEndTime: 0,
-            shieldActive: false,
-            shieldEndTime: 0
-        };
-        
-        // 初始化游戏
-        this.init();
-    }
-    
-    init() {
-        // 加载游戏数据
-        this.loadGame();
-        
-        // 生成第一个敌人
-        this.generateEnemy();
-        
-        // 更新UI
-        this.updateUI();
-        
-        // 绑定事件
-        this.bindEvents();
-        
-        // 开始游戏循环
-        this.startGameLoop();
-        
-        this.addBattleLog('游戏开始！准备战斗！');
-    }
-    
-    // 生成敌人
-    generateEnemy() {
-        // 检查是否应该生成BOSS
-        if (this.character.level >= this.bossState.nextBossLevel && !this.bossState.isBossFight) {
-            this.generateBoss();
-            return;
-        }
-        
-        // 根据角色等级选择合适的敌人
-        const enemyIndex = Math.min(
-            Math.floor((this.character.level - 1) / 2),
-            this.enemyTemplates.length - 1
-        );
-        
-        const template = this.enemyTemplates[enemyIndex];
-        
-        // 添加一些随机性
-        const hpVariation = Math.floor(template.hp * 0.2 * (Math.random() - 0.5));
-        const attackVariation = Math.floor(template.attack * 0.2 * (Math.random() - 0.5));
-        
-        this.currentEnemy = {
-            name: template.name,
-            hp: template.hp + hpVariation,
-            maxHp: template.hp + hpVariation,
-            attack: template.attack + attackVariation,
-            expReward: template.expReward,
-            emoji: template.emoji,
-            isBoss: false
-        };
-        
-        this.addBattleLog(`遭遇了 ${this.currentEnemy.name}！`);
-    }
-    
-    // 生成BOSS
-    generateBoss() {
-        const bossIndex = Math.min(
-            this.bossState.bossDefeatedCount,
-            this.bossTemplates.length - 1
-        );
-        
-        const template = this.bossTemplates[bossIndex];
-        
-        this.currentEnemy = {
-            name: template.name,
-            hp: template.hp,
-            maxHp: template.hp,
-            attack: template.attack,
-            expReward: template.expReward,
-            emoji: template.emoji,
-            isBoss: true,
-            skills: template.skills,
-            level: template.level
-        };
-        
-        this.bossState.isBossFight = true;
-        this.bossState.bossSkillCooldown = 0;
-        
-        this.addBattleLog(`⚠️ 强大的BOSS ${this.currentEnemy.name} 出现了！`);
-        this.addBattleLog(`🔥 这将是一场艰难的战斗！`);
-        
-        // BOSS出现特效
-        this.triggerScreenShake();
-        this.createParticleEffect('critical', { x: 350, y: 200 }, 15);
-    }
-    
-    // 战斗逻辑
-    battle() {
-        if (!this.currentEnemy || this.character.hp <= 0) return;
-        
-        const currentTime = Date.now();
-        
-        // 更新状态效果
-        this.updateStatusEffects(currentTime);
-        
-        // 角色攻击敌人
-        let damage = this.character.attack + Math.floor(Math.random() * 8) + 2; // 增加随机伤害范围和基础伤害
-        
-        // 连击加成系统优化 - 连击越高伤害加成越大
-        const comboBonus = Math.min(this.combatState.comboCount * 0.15, 2.0); // 每连击增加15%伤害，最高200%
-        damage = Math.floor(damage * (1 + comboBonus));
-        
-        // 狂暴状态加成
-        if (this.combatState.berserkActive) {
-            damage = Math.floor(damage * 1.8); // 狂暴状态下伤害增加80%
-        }
-        
-        // 检查是否暴击
-        let isCritical = false;
-        const criticalChance = this.character.criticalRate + (this.combatState.berserkActive ? 0.2 : 0); // 狂暴状态下暴击率提升更多
-        if (this.combatState.nextAttackIsCritical || Math.random() < criticalChance) {
-            damage = Math.floor(damage * this.skills.critical.multiplier);
-            isCritical = true;
-            this.combatState.nextAttackIsCritical = false;
-            this.triggerCriticalFlash(); // 暴击闪光效果
-        }
-        
-        // 连击系统
-        const timeSinceLastAttack = currentTime - this.combatState.lastAttackTime;
-        if (timeSinceLastAttack < 2000) {
-            this.combatState.comboCount++;
-            if (this.combatState.comboCount >= 3) {
-                damage = Math.floor(damage * 1.2);
-                this.addBattleLog(`🔥 连击 x${this.combatState.comboCount}！伤害提升！`);
-            }
-        } else {
-            this.combatState.comboCount = 1;
-        }
-        this.combatState.lastAttackTime = currentTime;
-        this.updateComboDisplay();
-        
-        // 音效提示（用emoji表示）
-        if (isCritical) {
-            this.showSoundEffect('💥');
-        } else if (this.combatState.comboCount > 1) {
-            this.showSoundEffect('⚡');
-        } else {
-            this.showSoundEffect('🗡️');
-        }
-        
-        this.currentEnemy.hp -= damage;
-        
-        // 生命汲取效果
-        if (this.combatState.lifeDrainActive) {
-            const drainAmount = Math.floor(damage * this.skills.lifeDrain.drainPercent);
-            const actualHeal = Math.min(drainAmount, this.character.maxHp - this.character.hp);
-            this.character.hp += actualHeal;
-            if (actualHeal > 0) {
-                this.showDamageNumber(actualHeal, 'heal');
-                this.addBattleLog(`🩸 生命汲取恢复了 ${actualHeal} 点生命值！`);
-            }
-        }
-            
-        // 触发攻击动画
-        this.triggerAttackAnimation('hero');
-        this.triggerHitAnimation('enemy');
-        
-        if (isCritical) {
-            this.addBattleLog(`💥 勇者暴击攻击 ${this.currentEnemy.name}，造成 ${damage} 点伤害！`);
-            this.showDamageNumber(damage, 'critical');
-            // 暴击粒子特效
-            this.createParticleEffect('critical', { x: 250, y: 200 }, 8);
-        } else {
-            this.addBattleLog(`⚔️ 勇者攻击 ${this.currentEnemy.name}，造成 ${damage} 点伤害`);
-            this.showDamageNumber(damage, 'normal');
-        }
-        
-        // 显示连击特效
-        if (this.combatState.comboCount > 1) {
-            this.showComboEffect(this.combatState.comboCount);
-        }
-        
-        // 检查敌人是否死亡
-        if (this.currentEnemy.hp <= 0) {
-            if (this.currentEnemy.isBoss) {
-                this.addBattleLog(`🎉 恭喜！BOSS ${this.currentEnemy.name} 被击败了！`);
-                this.addBattleLog(`🏆 获得了丰厚的奖励！`);
-                
-                // BOSS击败特效
-                this.triggerScreenShake();
-                this.createParticleEffect('critical', { x: 350, y: 200 }, 20);
-                
-                // 更新BOSS状态
-                this.bossState.isBossFight = false;
-                this.bossState.bossDefeatedCount++;
-                this.bossState.nextBossLevel += 5;
-                
-                // 检查BOSS杀手成就
-                this.checkAchievement('bossSlayer');
-            } else {
-                this.addBattleLog(`${this.currentEnemy.name} 被击败了！💀`);
-                
-                // 检查首次击杀成就
-                this.checkAchievement('firstKill');
-            }
-            
-            this.gainExp(this.currentEnemy.expReward);
-            
-            // 重置连击
-            this.combatState.comboCount = 0;
-            
-            // 生成新敌人
-            setTimeout(() => {
-                this.generateEnemy();
-                this.updateUI();
-            }, 1000);
-            
-            return;
-        }
-        
-        // 敌人攻击角色
-        this.enemyAttack();
-        
-        // 检查角色是否死亡
-        if (this.character.hp <= 0) {
-            this.character.hp = 0;
-            this.addBattleLog('勇者被击败了！💀 将在5秒后复活...');
-            
-            // 重置连击和暴击状态
-            this.combatState.comboCount = 0;
-            this.combatState.nextAttackIsCritical = false;
-            
-            setTimeout(() => {
-                this.character.hp = this.character.maxHp;
-                this.addBattleLog('勇者复活了！💪 继续战斗！');
-                this.updateUI();
-            }, 5000);
-        }
-    }
-    
-    // 获得经验值
-    gainExp(amount) {
-        this.character.exp += amount;
-        this.addBattleLog(`获得 ${amount} 点经验值！`);
-        
-        // 检查是否可以升级
-        while (this.character.exp >= this.character.maxExp) {
-            this.levelUp();
-        }
-    }
-    
-    // 升级
-    levelUp() {
-        this.character.exp -= this.character.maxExp;
-        this.character.level++;
-        this.character.upgradePoints++;
-        
-        // 升级时恢复满血
-        this.character.hp = this.character.maxHp;
-        
-        // 增加下一级所需经验
-        this.character.maxExp = Math.floor(this.character.maxExp * 1.5);
-        
-        this.addBattleLog(`🎉 恭喜！升级到 ${this.character.level} 级！获得1个升级点！`);
-        
-        // 检查升级成就
-        this.checkAchievement('levelUp');
-    }
-    
-    // 使用技能
-    useSkill(skillName) {
-        const skill = this.skills[skillName];
-        if (!skill) return false;
-        
-        const currentTime = Date.now();
-        const timeSinceLastUse = currentTime - skill.lastUsed;
-        
-        // 检查冷却时间
-        if (timeSinceLastUse < skill.cooldown) {
-            const remainingCooldown = Math.ceil((skill.cooldown - timeSinceLastUse) / 1000);
-            this.addBattleLog(`${skill.name} 还在冷却中，剩余 ${remainingCooldown} 秒！`);
-            return false;
-        }
-        
-        // 检查角色是否死亡
-        if (this.character.hp <= 0) {
-            this.addBattleLog('勇者已死亡，无法使用技能！');
-            return false;
-        }
-        
-        skill.lastUsed = currentTime;
-        
-        switch (skillName) {
-            case 'fireball':
-                if (this.currentEnemy) {
-                    const damage = skill.damage + Math.floor(Math.random() * 10);
-                    this.currentEnemy.hp -= damage;
-                    this.addBattleLog(`🔥 勇者释放火球术，对 ${this.currentEnemy.name} 造成 ${damage} 点火焰伤害！`);
-                    this.showSkillEffect('🔥', 'fireball');
-                    this.showDamageNumber(damage, 'skill');
-                    // 火球术粒子特效
-                    this.createParticleEffect('skill', { x: 350, y: 200 }, 6);
-                    
-                    // 检查敌人是否死亡
-                    if (this.currentEnemy.hp <= 0) {
-                        this.addBattleLog(`${this.currentEnemy.name} 被火球术烧死了！💀🔥`);
-                        this.gainExp(this.currentEnemy.expReward);
-                        setTimeout(() => {
-                            this.generateEnemy();
-                            this.updateUI();
-                        }, 1000);
-                    }
-                }
-                break;
-                
-            case 'heal':
-                const healAmount = skill.healAmount + Math.floor(Math.random() * 10);
-                const actualHeal = Math.min(healAmount, this.character.maxHp - this.character.hp);
-                this.character.hp += actualHeal;
-                this.addBattleLog(`💚 勇者使用治疗术，恢复了 ${actualHeal} 点生命值！`);
-                this.showSkillEffect('💚', 'heal');
-                this.showDamageNumber(actualHeal, 'heal');
-                // 治疗术粒子特效
-                this.createParticleEffect('skill', { x: 150, y: 200 }, 5);
-                break;
-                
-            case 'critical':
-                this.combatState.nextAttackIsCritical = true;
-                this.addBattleLog(`⚡ 勇者蓄力完成，下次攻击将造成暴击伤害！`);
-                this.showSkillEffect('⚡', 'critical');
-                break;
-                
-            case 'lightningChain':
-                if (this.currentEnemy) {
-                    const damage = skill.damage + Math.floor(Math.random() * 15);
-                    this.currentEnemy.hp -= damage;
-                    this.addBattleLog(`⚡ 勇者释放闪电链，对 ${this.currentEnemy.name} 造成 ${damage} 点雷电伤害！`);
-                    this.showSkillEffect('⚡', 'lightningChain');
-                    this.showDamageNumber(damage, 'lightning');
-                    // 闪电链粒子特效
-                    this.createParticleEffect('skill', { x: 350, y: 200 }, 10);
-                    
-                    // 连锁效果（模拟多次小伤害）
-                    for (let i = 1; i < skill.chainCount && this.currentEnemy.hp > 0; i++) {
-                        setTimeout(() => {
-                            if (this.currentEnemy && this.currentEnemy.hp > 0) {
-                                const chainDamage = Math.floor(damage * 0.6);
-                                this.currentEnemy.hp -= chainDamage;
-                                this.addBattleLog(`⚡ 闪电链连锁第${i+1}段，造成 ${chainDamage} 点伤害！`);
-                                this.showDamageNumber(chainDamage, 'lightning');
-                                this.updateUI();
-                            }
-                        }, i * 300);
-                    }
-                    
-                    // 检查敌人是否死亡
-                    setTimeout(() => {
-                        if (this.currentEnemy && this.currentEnemy.hp <= 0) {
-                            this.addBattleLog(`${this.currentEnemy.name} 被闪电链电死了！💀⚡`);
-                            this.gainExp(this.currentEnemy.expReward);
-                            setTimeout(() => {
-                                this.generateEnemy();
-                                this.updateUI();
-                            }, 1000);
-                        }
-                    }, skill.chainCount * 300);
-                }
-                break;
-                
-            case 'shield':
-                this.character.shield += skill.shieldAmount;
-                this.combatState.shieldActive = true;
-                this.combatState.shieldEndTime = currentTime + skill.duration;
-                this.addBattleLog(`🛡️ 勇者获得了 ${skill.shieldAmount} 点护盾！`);
-                this.showSkillEffect('🛡️', 'shield');
-                this.showDamageNumber(skill.shieldAmount, 'shield');
-                break;
-                
-            case 'berserk':
-                this.combatState.berserkActive = true;
-                this.combatState.berserkEndTime = currentTime + skill.duration;
-                this.addBattleLog(`🔥 勇者进入狂暴状态！攻击力和暴击率大幅提升！`);
-                this.showSkillEffect('🔥', 'berserk');
-                break;
-                
-            case 'lifeDrain':
-                this.combatState.lifeDrainActive = true;
-                this.combatState.lifeDrainEndTime = currentTime + skill.duration;
-                this.addBattleLog(`🩸 勇者开启生命汲取！攻击时将恢复生命值！`);
-                this.showSkillEffect('🩸', 'lifeDrain');
-                break;
-        }
-        
-        this.updateSkillCooldowns();
-        this.updateUI();
-        this.saveGame();
-        return true;
-    }
-    
-    // 更新状态效果
-    updateStatusEffects(currentTime) {
-        // 检查狂暴状态
-        if (this.combatState.berserkActive && currentTime >= this.combatState.berserkEndTime) {
-            this.combatState.berserkActive = false;
-            this.addBattleLog(`🔥 狂暴状态结束了！`);
-        }
-        
-        // 检查生命汲取状态
-        if (this.combatState.lifeDrainActive && currentTime >= this.combatState.lifeDrainEndTime) {
-            this.combatState.lifeDrainActive = false;
-            this.addBattleLog(`🩸 生命汲取效果结束了！`);
-        }
-        
-        // 检查护盾状态
-        if (this.combatState.shieldActive && currentTime >= this.combatState.shieldEndTime) {
-            this.combatState.shieldActive = false;
-            this.character.shield = 0;
-            this.addBattleLog(`🛡️ 护盾效果结束了！`);
-        }
-    }
-    
-    // 显示伤害数字
-    showDamageNumber(damage, type = 'normal') {
-        const effectsArea = document.getElementById('effects-area');
-        const damageElement = document.createElement('div');
-        damageElement.className = `damage-number ${type}`;
-        
-        let displayText = '';
-        switch (type) {
-            case 'critical':
-                displayText = `${damage} 💥`;
-                break;
-            case 'heal':
-                displayText = `+${damage} ❤️`;
-                break;
-            case 'skill':
-                displayText = `${damage} 🔥`;
-                break;
-            case 'lightning':
-                displayText = `${damage} ⚡`;
-                break;
-            case 'shield':
-                displayText = `+${damage} 🛡️`;
-                break;
-            case 'enemy':
-                displayText = `-${damage}`;
-                break;
-            default:
-                displayText = `${damage}`;
-        }
-        
-        damageElement.textContent = displayText;
-        damageElement.style.left = Math.random() * 80 + 10 + '%';
-        damageElement.style.top = '50%';
-        
-        effectsArea.appendChild(damageElement);
-        
-        // 2秒后移除元素
-        setTimeout(() => {
-            if (damageElement.parentNode) {
-                damageElement.parentNode.removeChild(damageElement);
-            }
-        }, 2000);
-    }
-    
-    // 显示技能特效
-    showSkillEffect(emoji, skillType) {
-        const effectsArea = document.getElementById('effects-area');
-        const effectElement = document.createElement('div');
-        
-        // 根据技能类型设置不同的特效样式
-        switch (skillType) {
-            case 'lightningChain':
-                effectElement.className = 'skill-effect-lightning';
-                effectElement.textContent = '⚡';
-                this.triggerScreenShake();
-                break;
-            case 'shield':
-                effectElement.className = 'skill-effect-shield';
-                effectElement.textContent = '🛡️';
-                break;
-            case 'berserk':
-                effectElement.className = 'skill-effect-berserk';
-                effectElement.textContent = '🔥';
-                this.triggerScreenShake();
-                break;
-            case 'lifeDrain':
-                effectElement.className = 'skill-effect-lifedrain';
-                effectElement.textContent = '🩸';
-                break;
-            default:
-                effectElement.className = 'skill-effect';
-                effectElement.textContent = emoji;
-        }
-        
-        // 随机位置
-        effectElement.style.left = Math.random() * 60 + 20 + '%';
-        effectElement.style.top = Math.random() * 40 + 10 + '%';
-        
-        effectsArea.appendChild(effectElement);
-        
-        // 1秒后移除元素
-        setTimeout(() => {
-            if (effectElement.parentNode) {
-                effectElement.parentNode.removeChild(effectElement);
-            }
-        }, 1000);
-    }
-    
-    // 触发屏幕震动效果
-    triggerScreenShake() {
-        const gameContainer = document.querySelector('.game-container');
-        gameContainer.classList.add('screen-shake');
-        
-        setTimeout(() => {
-            gameContainer.classList.remove('screen-shake');
-        }, 500);
-    }
-    
-    // 触发暴击闪光效果
-    triggerCriticalFlash() {
-        const gameContainer = document.querySelector('.game-container');
-        gameContainer.classList.add('critical-flash');
-        
-        setTimeout(() => {
-            gameContainer.classList.remove('critical-flash');
-        }, 300);
-    }
-    
-    // 绑定技能升级事件
-    bindSkillUpgradeEvents() {
-        const skillUpgradeCosts = {
-            fireball: 2,
-            heal: 2,
-            critical: 2,
-            lightningChain: 3,
-            shield: 3,
-            berserk: 4,
-            lifeDrain: 4
-        };
-        
-        Object.keys(this.skills).forEach(skillKey => {
-            const upgradeBtn = document.getElementById(`upgrade-${skillKey}`);
-            if (upgradeBtn) {
-                upgradeBtn.addEventListener('click', () => {
-                    this.upgradeSkill(skillKey, skillUpgradeCosts[skillKey]);
-                });
-            }
-        });
-    }
-    
-    // 升级技能
-    upgradeSkill(skillKey, cost) {
-        const skill = this.skills[skillKey];
-        
-        if (!skill) return;
-        
-        if (this.character.upgradePoints < cost) {
-            this.addBattleLog('升级点数不足！需要 ' + cost + ' 点');
-            return;
-        }
-        
-        if (skill.level >= skill.maxLevel) {
-            this.addBattleLog(skill.name + ' 已达到最高等级！');
-            return;
-        }
-        
-        // 执行升级
-        skill.level++;
-        this.character.upgradePoints -= cost;
-        
-        // 更新UI
-        this.updateUI();
-        this.updateSkillUpgradeUI();
-        
-        // 显示升级信息
-        this.addBattleLog(`${skill.name} 升级到 ${skill.level} 级！`);
-        
-        // 显示升级特效和粒子效果
-        this.showSkillEffect('✨', 'upgrade');
-        this.createParticleEffect('skill', { x: 250, y: 300 }, 12);
-        
-        // 检查技能大师成就
-        this.checkAchievement('skillMaster');
-    }
-    
-    // 更新技能升级UI
-    updateSkillUpgradeUI() {
-        Object.keys(this.skills).forEach(skillKey => {
-            const skill = this.skills[skillKey];
-            const levelSpan = document.getElementById(`${skillKey}-level`);
-            const upgradeBtn = document.getElementById(`upgrade-${skillKey}`);
-            
-            if (levelSpan) {
-                levelSpan.textContent = skill.level;
-            }
-            
-            if (upgradeBtn) {
-                if (skill.level >= skill.maxLevel) {
-                    upgradeBtn.textContent = '已满级';
-                    upgradeBtn.disabled = true;
-                    upgradeBtn.classList.add('max-level');
-                } else {
-                    const skillUpgradeCosts = {
-                        fireball: 2, heal: 2, critical: 2,
-                        lightningChain: 3, shield: 3,
-                        berserk: 4, lifeDrain: 4
-                    };
-                    const cost = skillUpgradeCosts[skillKey];
-                    upgradeBtn.textContent = `升级 (${cost}点)`;
-                    upgradeBtn.disabled = this.character.upgradePoints < cost;
-                    upgradeBtn.classList.remove('max-level');
-                }
-            }
-        });
-    }
-    
-    // 粒子特效系统
-    createParticleEffect(type, x, y, count = 10) {
-        const effectsArea = document.getElementById('effects-area');
-        
-        for (let i = 0; i < count; i++) {
-            const particle = document.createElement('div');
-            particle.className = `particle particle-${type}`;
-            
-            // 设置初始位置
-            const offsetX = (Math.random() - 0.5) * 100;
-            const offsetY = (Math.random() - 0.5) * 100;
-            particle.style.left = (x + offsetX) + 'px';
-            particle.style.top = (y + offsetY) + 'px';
-            
-            // 设置随机动画延迟
-            particle.style.animationDelay = Math.random() * 0.5 + 's';
-            
-            effectsArea.appendChild(particle);
-            
-            // 动画结束后移除粒子
-            setTimeout(() => {
-                if (particle.parentNode) {
-                    particle.parentNode.removeChild(particle);
-                }
-            }, 2000);
-        }
-    }
-    
-    // 连击特效
-    showComboEffect(comboCount) {
-        if (comboCount <= 1) return;
-        
-        const effectsArea = document.getElementById('effects-area');
-        const comboElement = document.createElement('div');
-        comboElement.className = 'combo-effect';
-        comboElement.textContent = `${comboCount} COMBO!`;
-        
-        // 根据连击数设置不同的样式
-        if (comboCount >= 10) {
-            comboElement.classList.add('combo-legendary');
-        } else if (comboCount >= 5) {
-            comboElement.classList.add('combo-epic');
-        } else {
-            comboElement.classList.add('combo-normal');
-        }
-        
-        effectsArea.appendChild(comboElement);
-        
-        // 创建连击粒子特效
-        const rect = effectsArea.getBoundingClientRect();
-        this.createParticleEffect('combo', rect.width / 2, rect.height / 2, comboCount);
-        
-        setTimeout(() => {
-            if (comboElement.parentNode) {
-                comboElement.parentNode.removeChild(comboElement);
-            }
-        }, 2000);
-    }
-    
-    // 更新技能冷却显示
-    updateSkillCooldowns() {
-        const currentTime = Date.now();
-        
-        Object.keys(this.skills).forEach(skillName => {
-            const skill = this.skills[skillName];
-            const cooldownElement = document.getElementById(`${skillName}-cooldown`);
-            const skillButton = document.getElementById(`${skillName}-btn`);
-            
-            const timeSinceLastUse = currentTime - skill.lastUsed;
-            const remainingCooldown = skill.cooldown - timeSinceLastUse;
-            
-            if (remainingCooldown > 0) {
-                const seconds = Math.ceil(remainingCooldown / 1000);
-                cooldownElement.textContent = seconds;
-                cooldownElement.classList.add('active');
-                skillButton.disabled = true;
-            } else {
-                cooldownElement.textContent = '';
-                cooldownElement.classList.remove('active');
-                skillButton.disabled = false;
-            }
-        });
-    }
-    
-    // 触发攻击动画
-    triggerAttackAnimation(attacker) {
-        const element = attacker === 'hero' ? 
-            document.querySelector('.character-avatar') : 
-            document.querySelector('.enemy-avatar');
-        
-        if (element) {
-            element.classList.add('attacking');
-            setTimeout(() => {
-                element.classList.remove('attacking');
-            }, 600);
-        }
-    }
-    
-    // 触发受击动画
-    triggerHitAnimation(target) {
-        const element = target === 'hero' ? 
-            document.querySelector('.character-avatar') : 
-            document.querySelector('.enemy-avatar');
-        
-        if (element) {
-            element.classList.add('hit');
-            setTimeout(() => {
-                element.classList.remove('hit');
-            }, 500);
-        }
-    }
-    
-    // 更新连击显示
-    updateComboDisplay() {
-        const comboDisplay = document.getElementById('combo-display');
-        const comboCountElement = document.getElementById('combo-count');
-        const comboProgress = document.getElementById('combo-progress');
-        
-        if (this.combatState.comboCount > 1) {
-            comboDisplay.style.display = 'block';
-            comboCountElement.textContent = this.combatState.comboCount;
-            
-            // 连击进度条（基于连击数量）
-            const maxCombo = 10; // 最大连击显示
-            const progress = Math.min(this.combatState.comboCount / maxCombo * 100, 100);
-            comboProgress.style.width = progress + '%';
-            
-            // 连击动画
-            comboDisplay.style.animation = 'none';
-            setTimeout(() => {
-                comboDisplay.style.animation = 'combo-pulse 0.5s ease-in-out';
-            }, 10);
-        } else {
-            comboDisplay.style.display = 'none';
-        }
-    }
-    
-    // 显示音效提示
-    showSoundEffect(emoji) {
-        const effectsArea = document.querySelector('.effects-area');
-        const soundEffect = document.createElement('div');
-        soundEffect.className = 'sound-effect';
-        soundEffect.textContent = emoji;
-        soundEffect.style.cssText = `
-            position: absolute;
-            top: 20%;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 2rem;
-            z-index: 15;
-            animation: sound-effect-bounce 1s ease-out forwards;
-            pointer-events: none;
-        `;
-        
-        effectsArea.appendChild(soundEffect);
-        
-        setTimeout(() => {
-            if (soundEffect.parentNode) {
-                soundEffect.parentNode.removeChild(soundEffect);
-            }
-        }, 1000);
-    }
-    
-    // 升级属性
-    upgradeAttribute(type) {
-        if (this.character.upgradePoints <= 0) return;
-        
-        this.character.upgradePoints--;
-        
-        switch (type) {
-            case 'hp':
-                this.character.maxHp += 20;
-                this.character.hp += 20; // 升级时也增加当前血量
-                this.addBattleLog('血量上限增加了20点！💪');
-                break;
-            case 'attack':
-                this.character.attack += 5;
-                this.addBattleLog('攻击力增加了5点！⚔️');
-                break;
-        }
-        
-        this.updateUI();
-        this.saveGame();
-    }
-    
-    // 添加战斗日志
-    addBattleLog(message) {
-        this.battleLogMessages.push(message);
-        
-        // 限制日志数量
-        if (this.battleLogMessages.length > 10) {
-            this.battleLogMessages.shift();
-        }
-        
-        this.updateBattleLog();
-    }
-    
-    // 更新战斗日志显示
-    updateBattleLog() {
-        const logContent = document.getElementById('battle-log-content');
-        logContent.innerHTML = this.battleLogMessages
-            .map(msg => `<p>${msg}</p>`)
-            .join('');
-        
-        // 滚动到底部
-        logContent.scrollTop = logContent.scrollHeight;
-    }
-    
-    // 更新UI
-    updateUI() {
-        // 更新角色状态
-        document.getElementById('character-level').textContent = this.character.level;
-        document.getElementById('character-hp').textContent = this.character.hp;
-        document.getElementById('character-max-hp').textContent = this.character.maxHp;
-        document.getElementById('character-attack').textContent = this.character.attack;
-        document.getElementById('character-exp').textContent = this.character.exp;
-        document.getElementById('character-max-exp').textContent = this.character.maxExp;
-        
-        // 更新护盾值显示
-        const shieldElement = document.getElementById('character-shield');
-        const shieldStatus = document.getElementById('shield-status');
-        if (shieldElement && shieldStatus) {
-            shieldElement.textContent = this.character.shield || 0;
-            shieldStatus.style.display = this.character.shield > 0 ? 'block' : 'none';
-        }
-        
-        // 更新经验条
-        const expPercentage = (this.character.exp / this.character.maxExp) * 100;
-        document.getElementById('exp-bar-fill').style.width = `${expPercentage}%`;
-        
-        // 更新角色血量条
-        const characterHpPercentage = (this.character.hp / this.character.maxHp) * 100;
-        document.getElementById('character-hp-bar-fill').style.width = `${characterHpPercentage}%`;
-        
-        // 更新敌人信息
-        if (this.currentEnemy) {
-            document.getElementById('enemy-name').textContent = this.currentEnemy.name;
-            document.getElementById('enemy-hp').textContent = Math.max(0, this.currentEnemy.hp);
-            document.getElementById('enemy-max-hp').textContent = this.currentEnemy.maxHp;
-            
-            // 更新敌人头像
-            document.getElementById('enemy-avatar').textContent = this.currentEnemy.emoji;
-            
-            // 更新敌人血量条
-            const enemyHpPercentage = Math.max(0, (this.currentEnemy.hp / this.currentEnemy.maxHp) * 100);
-            document.getElementById('enemy-hp-bar-fill').style.width = `${enemyHpPercentage}%`;
-        }
-        
-        // 更新升级点数
-        document.getElementById('upgrade-points').textContent = this.character.upgradePoints;
-        
-        // 更新升级按钮状态
-        const upgradeHpBtn = document.getElementById('upgrade-hp-btn');
-        const upgradeAttackBtn = document.getElementById('upgrade-attack-btn');
-        
-        const hasUpgradePoints = this.character.upgradePoints > 0;
-        upgradeHpBtn.disabled = !hasUpgradePoints;
-        upgradeAttackBtn.disabled = !hasUpgradePoints;
-        
-        // 更新技能升级UI
-        this.updateSkillUpgradeUI();
-        
-        // 更新技能冷却时间
-        this.updateSkillCooldowns();
-    }
-    
-    // 绑定事件
-    bindEvents() {
-        // 升级按钮
-        document.getElementById('upgrade-hp-btn').addEventListener('click', () => {
-            this.upgradeAttribute('hp');
-        });
-        
-        document.getElementById('upgrade-attack-btn').addEventListener('click', () => {
-            this.upgradeAttribute('attack');
-        });
-        
-        // 绑定技能升级按钮事件
-        this.bindSkillUpgradeEvents();
-        
-        // 技能按钮
-        document.getElementById('fireball-btn').addEventListener('click', () => {
-            this.useSkill('fireball');
-        });
-        
-        document.getElementById('heal-btn').addEventListener('click', () => {
-            this.useSkill('heal');
-        });
-        
-        document.getElementById('critical-btn').addEventListener('click', () => {
-            this.useSkill('critical');
-        });
-        
-        // 新技能按钮
-        document.getElementById('lightning-chain-btn').addEventListener('click', () => {
-            this.useSkill('lightningChain');
-        });
-        
-        document.getElementById('shield-btn').addEventListener('click', () => {
-            this.useSkill('shield');
-        });
-        
-        document.getElementById('berserk-btn').addEventListener('click', () => {
-            this.useSkill('berserk');
-        });
-        
-        document.getElementById('life-drain-btn').addEventListener('click', () => {
-            this.useSkill('lifeDrain');
-        });
-        
-        // 保存游戏按钮
-        document.getElementById('save-game-btn').addEventListener('click', () => {
-            this.saveGame();
-            this.addBattleLog('游戏已保存！💾');
-        });
-        
-        // 重置游戏按钮
-        document.getElementById('reset-game-btn').addEventListener('click', () => {
-            if (confirm('确定要重置游戏吗？所有进度将丢失！')) {
-                this.resetGame();
-            }
-        });
-    }
-    
-    // 开始游戏循环
-    startGameLoop() {
-        if (this.gameLoopId) {
-            clearInterval(this.gameLoopId);
-        }
-        
-        if (this.skillUpdateId) {
-            clearInterval(this.skillUpdateId);
-        }
-        
-        this.gameLoopId = setInterval(() => {
-            this.battle();
-            this.updateUI();
-        }, 1000); // 每秒执行一次战斗
-        
-        // 技能冷却更新循环（每100毫秒更新一次，更流畅）
-        this.skillUpdateId = setInterval(() => {
-            this.updateSkillCooldowns();
-        }, 100);
-    }
-    
-    // 停止游戏循环
-    stopGameLoop() {
-        if (this.gameLoopId) {
-            clearInterval(this.gameLoopId);
-            this.gameLoopId = null;
-        }
-        
-        if (this.skillUpdateId) {
-            clearInterval(this.skillUpdateId);
-            this.skillUpdateId = null;
-        }
-    }
-    
-    // 保存游戏
-    saveGame() {
-        const gameData = {
-            character: this.character,
-            battleLogMessages: this.battleLogMessages
-        };
-        
-        localStorage.setItem('idleARPGSave', JSON.stringify(gameData));
-    }
-    
-    // 加载游戏
-    loadGame() {
-        const savedData = localStorage.getItem('idleARPGSave');
-        
-        if (savedData) {
-            try {
-                const gameData = JSON.parse(savedData);
-                
-                // 恢复角色数据
-                if (gameData.character) {
-                    this.character = { ...this.character, ...gameData.character };
-                }
-                
-                // 恢复战斗日志
-                if (gameData.battleLogMessages) {
-                    this.battleLogMessages = gameData.battleLogMessages;
-                }
-                
-                this.addBattleLog('游戏数据已加载！');
-            } catch (error) {
-                console.error('加载游戏数据失败:', error);
-                this.addBattleLog('加载游戏数据失败，开始新游戏。');
-            }
-        }
-    }
-    
-    // 重置游戏
-    resetGame() {
-        // 停止游戏循环
-        this.stopGameLoop();
-        
-        // 重置数据
-        this.character = {
-            level: 1,
-            hp: 100,
-            maxHp: 100,
+            health: 100,
+            maxHealth: 100,
             attack: 10,
-            exp: 0,
-            maxExp: 100,
-            upgradePoints: 0
+            defense: 5,
+            experience: 0,
+            experienceToNext: 100,
+            gold: 0,
+            isAlive: true,
+            combo: 0,
+            maxCombo: 0,
+            isBerserk: false,
+            berserkTurns: 0
         };
         
-        this.battleLogMessages = [];
+        this.currentEnemy = null;
+        this.battleInProgress = false;
+        this.autoAttackInterval = null;
         
-        // 清除保存数据
-        localStorage.removeItem('idleARPGSave');
+        this.skills = {
+            fireball: { level: 1, damage: 15, cost: 10, cooldown: 0, maxCooldown: 3 },
+            heal: { level: 1, healing: 20, cost: 15, cooldown: 0, maxCooldown: 5 },
+            shield: { level: 1, defense: 10, cost: 12, cooldown: 0, maxCooldown: 4 },
+            lightning: { level: 1, damage: 25, cost: 20, cooldown: 0, maxCooldown: 6 },
+            berserk: { level: 1, duration: 3, cost: 25, cooldown: 0, maxCooldown: 8 },
+            drain: { level: 1, damage: 12, healing: 8, cost: 18, cooldown: 0, maxCooldown: 5 },
+            meteor: { level: 1, damage: 40, cost: 35, cooldown: 0, maxCooldown: 10 }
+        };
         
-        // 重新初始化
-        this.generateEnemy();
-        this.updateUI();
-        this.addBattleLog('游戏已重置！');
+        this.achievements = {
+            firstKill: { name: "初次击杀", description: "击败第一个敌人", unlocked: false, reward: 50 },
+            levelUp: { name: "等级提升", description: "达到等级5", unlocked: false, reward: 100 },
+            goldCollector: { name: "金币收集者", description: "收集1000金币", unlocked: false, reward: 200 },
+            comboMaster: { name: "连击大师", description: "达到10连击", unlocked: false, reward: 150 },
+            bossSlayer: { name: "BOSS杀手", description: "击败第一个BOSS", unlocked: false, reward: 300 },
+            skillMaster: { name: "技能大师", description: "将任意技能升级到5级", unlocked: false, reward: 250 },
+            survivor: { name: "生存者", description: "在一场战斗中生命值降到10以下但存活", unlocked: false, reward: 100 }
+        };
         
-        // 重新开始游戏循环
-        this.startGameLoop();
+        this.enemyTemplates = {
+            regular: [
+                { name: "哥布林", sprite: "👹", health: 50, attack: 8, defense: 2, experience: 25, gold: 10 },
+                { name: "骷髅兵", sprite: "💀", health: 70, attack: 12, defense: 4, experience: 35, gold: 15 },
+                { name: "兽人", sprite: "👺", health: 90, attack: 15, defense: 6, experience: 45, gold: 20 },
+                { name: "暗影刺客", sprite: "🥷", health: 60, attack: 20, defense: 3, experience: 40, gold: 25 },
+                { name: "石头巨人", sprite: "🗿", health: 150, attack: 10, defense: 15, experience: 60, gold: 30 }
+            ],
+            boss: [
+                { name: "哥布林王", sprite: "👑", health: 200, attack: 25, defense: 10, experience: 150, gold: 100, level: 5, skills: ["charge", "roar"] },
+                { name: "骷髅领主", sprite: "☠️", health: 300, attack: 30, defense: 15, experience: 200, gold: 150, level: 10, skills: ["necromancy", "bone_armor"] },
+                { name: "暗黑法师", sprite: "🧙‍♂️", health: 250, attack: 35, defense: 8, experience: 250, gold: 200, level: 15, skills: ["dark_magic", "teleport"] },
+                { name: "龙王", sprite: "🐉", health: 500, attack: 45, defense: 20, experience: 400, gold: 300, level: 20, skills: ["fire_breath", "fly", "rage"] }
+            ]
+        };
+        
+        this.combatState = {
+            playerTurn: true,
+            turnCount: 0,
+            lastAction: ""
+        };
     }
     
-    // 敌人攻击方法
-    enemyAttack() {
-        if (!this.currentEnemy || this.currentEnemy.hp <= 0) return;
-        
-        let enemyDamage = this.currentEnemy.attack + Math.floor(Math.random() * 5);
-        
-        // BOSS技能使用逻辑
-        if (this.currentEnemy.isBoss && this.currentEnemy.skills && this.currentEnemy.skills.length > 0) {
-            const useSkill = Math.random() < 0.3; // 30%概率使用技能
-            
-            if (useSkill) {
-                const skillName = this.currentEnemy.skills[Math.floor(Math.random() * this.currentEnemy.skills.length)];
-                this.useBossSkill(skillName);
-                return;
-            }
-        }
-        
-        // 护盾吸收伤害
-        if (this.character.shield > 0) {
-            const shieldAbsorb = Math.min(enemyDamage, this.character.shield);
-            this.character.shield -= shieldAbsorb;
-            enemyDamage -= shieldAbsorb;
-            
-            if (shieldAbsorb > 0) {
-                this.addBattleLog(`🛡️ 护盾吸收了 ${shieldAbsorb} 点伤害！`);
-                this.showDamageNumber(shieldAbsorb, 'shield');
-            }
-            
-            if (this.character.shield <= 0) {
-                this.addBattleLog(`🛡️ 护盾被击破了！`);
-                this.combatState.shieldActive = false;
-            }
-        }
-        
-        // 剩余伤害作用于生命值
-        if (enemyDamage > 0) {
-            this.character.hp -= enemyDamage;
-        }
-        
-        // 触发攻击动画
-        this.triggerAttackAnimation('enemy');
-        this.triggerHitAnimation('hero');
-        
-        if (enemyDamage > 0) {
-            this.addBattleLog(`${this.currentEnemy.name} 攻击勇者，造成 ${enemyDamage} 点伤害！`);
-            this.showDamageNumber(enemyDamage, 'enemy');
-        } else {
-            this.addBattleLog(`${this.currentEnemy.name} 的攻击被完全吸收了！`);
-        }
+    // 保存游戏状态
+    save() {
+        const saveData = {
+            character: this.character,
+            skills: this.skills,
+            achievements: this.achievements,
+            combatState: this.combatState
+        };
+        localStorage.setItem('idleARPGSave', JSON.stringify(saveData));
     }
     
-    // BOSS技能使用
-    useBossSkill(skillName) {
-        switch (skillName) {
-            case 'fireball':
-                const fireballDamage = 25 + Math.floor(Math.random() * 15);
-                this.character.hp -= fireballDamage;
-                this.addBattleLog(`🔥 ${this.currentEnemy.name} 释放火球术，造成 ${fireballDamage} 点火焰伤害！`);
-                this.showDamageNumber(fireballDamage, 'enemy');
-                this.createParticleEffect('skill', { x: 150, y: 200 }, 8);
-                break;
-                
-            case 'heal':
-                const healAmount = 30 + Math.floor(Math.random() * 20);
-                const actualHeal = Math.min(healAmount, this.currentEnemy.maxHp - this.currentEnemy.hp);
-                this.currentEnemy.hp += actualHeal;
-                this.addBattleLog(`💚 ${this.currentEnemy.name} 使用治疗术，恢复了 ${actualHeal} 点生命值！`);
-                this.showDamageNumber(actualHeal, 'heal');
-                break;
-                
-            case 'lightningChain':
-                const lightningDamage = 20 + Math.floor(Math.random() * 10);
-                this.character.hp -= lightningDamage;
-                this.addBattleLog(`⚡ ${this.currentEnemy.name} 释放闪电链，造成 ${lightningDamage} 点雷电伤害！`);
-                this.showDamageNumber(lightningDamage, 'enemy');
-                this.createParticleEffect('skill', { x: 150, y: 200 }, 10);
-                this.triggerScreenShake();
-                break;
-                
-            case 'berserk':
-                this.addBattleLog(`😡 ${this.currentEnemy.name} 进入狂暴状态，攻击力大幅提升！`);
-                this.currentEnemy.attack = Math.floor(this.currentEnemy.attack * 1.5);
-                break;
-        }
-        
-        this.triggerAttackAnimation('enemy');
-        this.triggerHitAnimation('hero');
-    }
-    
-    // 检查成就
-    checkAchievement(achievementId) {
-        const achievement = this.achievements[achievementId];
-        if (!achievement || achievement.unlocked) return;
-        
-        let shouldUnlock = false;
-        
-        switch (achievementId) {
-            case 'firstKill':
-                shouldUnlock = true;
-                break;
-                
-            case 'levelUp':
-                shouldUnlock = this.character.level >= 5;
-                break;
-                
-            case 'skillMaster':
-                const maxLevelSkills = Object.values(this.skills).filter(skill => skill.level >= skill.maxLevel);
-                shouldUnlock = maxLevelSkills.length >= 3;
-                break;
-                
-            case 'bossSlayer':
-                shouldUnlock = this.bossState.bossDefeatedCount >= 1;
-                break;
-                
-            case 'legendary':
-                shouldUnlock = this.character.level >= 20 && this.bossState.bossDefeatedCount >= 3;
-                break;
-        }
-        
-        if (shouldUnlock) {
-            achievement.unlocked = true;
-            this.addBattleLog(`🏆 成就解锁：${achievement.name} - ${achievement.description}`);
-            this.addBattleLog(`🎁 获得奖励：${achievement.reward}`);
-            
-            // 应用奖励
-            this.character.upgradePoints += 2;
-            
-            // 成就解锁特效
-            this.triggerScreenShake();
-            this.createParticleEffect('critical', { x: 250, y: 100 }, 15);
+    // 加载游戏状态
+    load() {
+        const saveData = localStorage.getItem('idleARPGSave');
+        if (saveData) {
+            const data = JSON.parse(saveData);
+            this.character = { ...this.character, ...data.character };
+            this.skills = { ...this.skills, ...data.skills };
+            this.achievements = { ...this.achievements, ...data.achievements };
+            this.combatState = { ...this.combatState, ...data.combatState };
         }
     }
 }
 
-// 页面加载完成后初始化游戏
-document.addEventListener('DOMContentLoaded', () => {
-    window.game = new GameState();
+// 全局游戏状态
+const gameState = new GameState();
+
+// 敌人生成
+function generateEnemy() {
+    const isBoss = Math.random() < 0.1 && gameState.character.level >= 5; // 10%概率生成BOSS，需要等级5+
     
-    // 页面关闭前自动保存
-    window.addEventListener('beforeunload', () => {
-        if (window.game) {
-            window.game.saveGame();
+    let template;
+    if (isBoss) {
+        const availableBosses = gameState.enemyTemplates.boss.filter(boss => 
+            gameState.character.level >= boss.level
+        );
+        template = availableBosses[Math.floor(Math.random() * availableBosses.length)] || gameState.enemyTemplates.boss[0];
+    } else {
+        template = gameState.enemyTemplates.regular[Math.floor(Math.random() * gameState.enemyTemplates.regular.length)];
+    }
+    
+    // 根据角色等级调整敌人属性
+    const levelMultiplier = 1 + (gameState.character.level - 1) * 0.2;
+    
+    return {
+        ...template,
+        maxHealth: Math.floor(template.health * levelMultiplier),
+        health: Math.floor(template.health * levelMultiplier),
+        attack: Math.floor(template.attack * levelMultiplier),
+        defense: Math.floor(template.defense * levelMultiplier),
+        experience: Math.floor(template.experience * levelMultiplier),
+        gold: Math.floor(template.gold * levelMultiplier),
+        isBoss: isBoss
+    };
+}
+
+// 战斗逻辑
+function performAttack() {
+    if (!gameState.currentEnemy || !gameState.character.isAlive) return;
+    
+    // 角色攻击
+    let damage = gameState.character.attack + Math.floor(Math.random() * 10) - 5; // 随机伤害
+    
+    // 连击加成
+    if (gameState.character.combo > 0) {
+        damage += Math.floor(gameState.character.combo * 0.5);
+    }
+    
+    // 狂暴状态加成
+    if (gameState.character.isBerserk) {
+        damage = Math.floor(damage * 1.5);
+        gameState.character.berserkTurns--;
+        if (gameState.character.berserkTurns <= 0) {
+            gameState.character.isBerserk = false;
+            addBattleLog("狂暴状态结束！");
+        }
+    }
+    
+    // 暴击判定
+    const isCritical = Math.random() < 0.15; // 15%暴击率
+    if (isCritical) {
+        damage = Math.floor(damage * 2);
+        gameState.character.combo++;
+        addBattleLog(`暴击！造成 ${damage} 点伤害！连击数: ${gameState.character.combo}`);
+        
+        // 更新最大连击数
+        if (gameState.character.combo > gameState.character.maxCombo) {
+            gameState.character.maxCombo = gameState.character.combo;
+        }
+        
+        // 检查连击成就
+        if (gameState.character.combo >= 10 && !gameState.achievements.comboMaster.unlocked) {
+            unlockAchievement('comboMaster');
+        }
+    } else {
+        gameState.character.combo = 0; // 非暴击重置连击
+        addBattleLog(`攻击造成 ${damage} 点伤害！`);
+    }
+    
+    // 应用伤害
+    damage = Math.max(1, damage - gameState.currentEnemy.defense);
+    gameState.currentEnemy.health -= damage;
+    
+    // 添加攻击动画
+    document.getElementById('character').classList.add('attack');
+    document.getElementById('enemy').classList.add('hit');
+    
+    setTimeout(() => {
+        document.getElementById('character').classList.remove('attack');
+        document.getElementById('enemy').classList.remove('hit');
+    }, 400);
+    
+    // 检查敌人是否死亡
+    if (gameState.currentEnemy.health <= 0) {
+        enemyDefeated();
+        return;
+    }
+    
+    // 敌人反击
+    setTimeout(() => {
+        if (gameState.currentEnemy && gameState.currentEnemy.health > 0) {
+            enemyAttack();
+        }
+    }, 800);
+}
+
+// 敌人攻击
+function enemyAttack() {
+    if (!gameState.currentEnemy || !gameState.character.isAlive) return;
+    
+    let damage = gameState.currentEnemy.attack + Math.floor(Math.random() * 6) - 3;
+    damage = Math.max(1, damage - gameState.character.defense);
+    
+    gameState.character.health -= damage;
+    addBattleLog(`${gameState.currentEnemy.name} 攻击造成 ${damage} 点伤害！`);
+    
+    // 添加受击动画
+    document.getElementById('character').classList.add('hit');
+    document.getElementById('enemy').classList.add('attack');
+    
+    setTimeout(() => {
+        document.getElementById('character').classList.remove('hit');
+        document.getElementById('enemy').classList.remove('attack');
+    }, 400);
+    
+    // 检查角色是否死亡
+    if (gameState.character.health <= 0) {
+        characterDefeated();
+        return;
+    }
+    
+    // 检查生存者成就
+    if (gameState.character.health <= 10 && !gameState.achievements.survivor.unlocked) {
+        unlockAchievement('survivor');
+    }
+    
+    updateDisplay();
+}
+
+// 敌人被击败
+function enemyDefeated() {
+    const enemy = gameState.currentEnemy;
+    
+    // 获得经验和金币
+    gameState.character.experience += enemy.experience;
+    gameState.character.gold += enemy.gold;
+    
+    addBattleLog(`击败了 ${enemy.name}！获得 ${enemy.experience} 经验值和 ${enemy.gold} 金币！`);
+    
+    // 检查成就
+    if (!gameState.achievements.firstKill.unlocked) {
+        unlockAchievement('firstKill');
+    }
+    
+    if (enemy.isBoss && !gameState.achievements.bossSlayer.unlocked) {
+        unlockAchievement('bossSlayer');
+    }
+    
+    if (gameState.character.gold >= 1000 && !gameState.achievements.goldCollector.unlocked) {
+        unlockAchievement('goldCollector');
+    }
+    
+    // 检查升级
+    checkLevelUp();
+    
+    // 生成新敌人
+    gameState.currentEnemy = generateEnemy();
+    
+    updateDisplay();
+    gameState.save();
+}
+
+// 角色被击败
+function characterDefeated() {
+    gameState.character.isAlive = false;
+    gameState.character.health = 0;
+    addBattleLog("你被击败了！3秒后复活...");
+    
+    // 停止自动攻击
+    if (gameState.autoAttackInterval) {
+        clearInterval(gameState.autoAttackInterval);
+        gameState.autoAttackInterval = null;
+    }
+    
+    // 3秒后复活
+    setTimeout(() => {
+        gameState.character.isAlive = true;
+        gameState.character.health = gameState.character.maxHealth;
+        gameState.character.combo = 0;
+        addBattleLog("你复活了！");
+        updateDisplay();
+        
+        // 重新开始自动攻击
+        startAutoAttack();
+    }, 3000);
+    
+    updateDisplay();
+}
+
+// 检查升级
+function checkLevelUp() {
+    while (gameState.character.experience >= gameState.character.experienceToNext) {
+        gameState.character.experience -= gameState.character.experienceToNext;
+        gameState.character.level++;
+        
+        // 提升属性
+        gameState.character.maxHealth += 20;
+        gameState.character.health = gameState.character.maxHealth; // 升级时回满血
+        gameState.character.attack += 3;
+        gameState.character.defense += 2;
+        gameState.character.experienceToNext = Math.floor(gameState.character.experienceToNext * 1.2);
+        
+        addBattleLog(`等级提升！现在是 ${gameState.character.level} 级！`);
+        
+        // 检查等级成就
+        if (gameState.character.level >= 5 && !gameState.achievements.levelUp.unlocked) {
+            unlockAchievement('levelUp');
+        }
+        
+        // 添加升级动画
+        document.getElementById('character').classList.add('pulse');
+        setTimeout(() => {
+            document.getElementById('character').classList.remove('pulse');
+        }, 300);
+    }
+}
+
+// 使用技能
+function useSkill(skillName) {
+    const skill = gameState.skills[skillName];
+    if (!skill || skill.cooldown > 0 || gameState.character.gold < skill.cost) {
+        return false;
+    }
+    
+    gameState.character.gold -= skill.cost;
+    skill.cooldown = skill.maxCooldown;
+    
+    switch (skillName) {
+        case 'fireball':
+            if (gameState.currentEnemy) {
+                const damage = skill.damage + skill.level * 5;
+                gameState.currentEnemy.health -= damage;
+                addBattleLog(`释放火球术！造成 ${damage} 点伤害！`);
+                if (gameState.currentEnemy.health <= 0) {
+                    enemyDefeated();
+                }
+            }
+            break;
+            
+        case 'heal':
+            const healing = skill.healing + skill.level * 3;
+            gameState.character.health = Math.min(gameState.character.maxHealth, gameState.character.health + healing);
+            addBattleLog(`使用治疗术！恢复 ${healing} 点生命值！`);
+            break;
+            
+        case 'shield':
+            gameState.character.defense += skill.defense + skill.level * 2;
+            addBattleLog(`使用护盾术！防御力临时提升！`);
+            setTimeout(() => {
+                gameState.character.defense -= (skill.defense + skill.level * 2);
+            }, 10000); // 10秒持续时间
+            break;
+            
+        case 'lightning':
+            if (gameState.currentEnemy) {
+                const damage = skill.damage + skill.level * 8;
+                gameState.currentEnemy.health -= damage;
+                addBattleLog(`释放闪电术！造成 ${damage} 点伤害！`);
+                if (gameState.currentEnemy.health <= 0) {
+                    enemyDefeated();
+                }
+            }
+            break;
+            
+        case 'berserk':
+            gameState.character.isBerserk = true;
+            gameState.character.berserkTurns = skill.duration + skill.level;
+            addBattleLog(`进入狂暴状态！攻击力提升50%！`);
+            break;
+            
+        case 'drain':
+            if (gameState.currentEnemy) {
+                const damage = skill.damage + skill.level * 3;
+                const healing = skill.healing + skill.level * 2;
+                gameState.currentEnemy.health -= damage;
+                gameState.character.health = Math.min(gameState.character.maxHealth, gameState.character.health + healing);
+                addBattleLog(`释放吸血术！造成 ${damage} 点伤害并恢复 ${healing} 点生命值！`);
+                if (gameState.currentEnemy.health <= 0) {
+                    enemyDefeated();
+                }
+            }
+            break;
+            
+        case 'meteor':
+            if (gameState.currentEnemy) {
+                const damage = skill.damage + skill.level * 15;
+                gameState.currentEnemy.health -= damage;
+                addBattleLog(`召唤陨石！造成 ${damage} 点巨额伤害！`);
+                if (gameState.currentEnemy.health <= 0) {
+                    enemyDefeated();
+                }
+            }
+            break;
+    }
+    
+    updateDisplay();
+    gameState.save();
+    return true;
+}
+
+// 升级技能
+function upgradeSkill(skillName) {
+    const skill = gameState.skills[skillName];
+    const cost = skill.level * 100;
+    
+    if (gameState.character.gold >= cost) {
+        gameState.character.gold -= cost;
+        skill.level++;
+        addBattleLog(`${skillName} 升级到 ${skill.level} 级！`);
+        
+        // 检查技能大师成就
+        if (skill.level >= 5 && !gameState.achievements.skillMaster.unlocked) {
+            unlockAchievement('skillMaster');
+        }
+        
+        updateDisplay();
+        gameState.save();
+        return true;
+    }
+    return false;
+}
+
+// 解锁成就
+function unlockAchievement(achievementKey) {
+    const achievement = gameState.achievements[achievementKey];
+    if (!achievement.unlocked) {
+        achievement.unlocked = true;
+        gameState.character.gold += achievement.reward;
+        addBattleLog(`🏆 成就解锁: ${achievement.name}！获得 ${achievement.reward} 金币奖励！`);
+        updateDisplay();
+        gameState.save();
+    }
+}
+
+// 添加战斗日志
+function addBattleLog(message) {
+    const logContent = document.getElementById('battleLog');
+    const p = document.createElement('p');
+    p.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+    logContent.appendChild(p);
+    logContent.scrollTop = logContent.scrollHeight;
+    
+    // 限制日志条数
+    while (logContent.children.length > 50) {
+        logContent.removeChild(logContent.firstChild);
+    }
+}
+
+// 开始自动攻击
+function startAutoAttack() {
+    if (gameState.autoAttackInterval) {
+        clearInterval(gameState.autoAttackInterval);
+    }
+    
+    gameState.autoAttackInterval = setInterval(() => {
+        if (gameState.character.isAlive && gameState.currentEnemy) {
+            performAttack();
+        }
+    }, 2000); // 每2秒攻击一次
+}
+
+// 停止自动攻击
+function stopAutoAttack() {
+    if (gameState.autoAttackInterval) {
+        clearInterval(gameState.autoAttackInterval);
+        gameState.autoAttackInterval = null;
+    }
+}
+
+// 更新显示
+function updateDisplay() {
+    // 更新角色状态
+    document.getElementById('level').textContent = gameState.character.level;
+    document.getElementById('health').textContent = `${gameState.character.health}/${gameState.character.maxHealth}`;
+    document.getElementById('attack').textContent = gameState.character.attack;
+    document.getElementById('defense').textContent = gameState.character.defense;
+    document.getElementById('experience').textContent = `${gameState.character.experience}/${gameState.character.experienceToNext}`;
+    document.getElementById('gold').textContent = gameState.character.gold;
+    
+    // 更新经验条
+    const expPercentage = (gameState.character.experience / gameState.character.experienceToNext) * 100;
+    document.getElementById('experienceBar').style.width = `${expPercentage}%`;
+    
+    // 更新敌人信息
+    if (gameState.currentEnemy) {
+        document.getElementById('enemySprite').textContent = gameState.currentEnemy.sprite;
+        document.getElementById('enemyName').textContent = gameState.currentEnemy.name + (gameState.currentEnemy.isBoss ? ' (BOSS)' : '');
+        document.getElementById('enemyHealth').textContent = `${gameState.currentEnemy.health}/${gameState.currentEnemy.maxHealth}`;
+    }
+    
+    // 更新技能冷却
+    Object.keys(gameState.skills).forEach(skillName => {
+        const skill = gameState.skills[skillName];
+        if (skill.cooldown > 0) {
+            skill.cooldown--;
         }
     });
-});
+    
+    updateSkillsDisplay();
+    updateUpgradesDisplay();
+    updateAchievementsDisplay();
+}
+
+// 更新技能显示
+function updateSkillsDisplay() {
+    const skillsGrid = document.getElementById('skillsGrid');
+    skillsGrid.innerHTML = '';
+    
+    Object.keys(gameState.skills).forEach(skillName => {
+        const skill = gameState.skills[skillName];
+        const button = document.createElement('button');
+        button.className = 'skill-button';
+        button.textContent = `${skillName} (Lv.${skill.level}) - ${skill.cost}金币`;
+        
+        if (skill.cooldown > 0) {
+            button.textContent += ` (冷却: ${skill.cooldown})`;
+            button.disabled = true;
+        } else if (gameState.character.gold < skill.cost) {
+            button.disabled = true;
+        }
+        
+        button.onclick = () => useSkill(skillName);
+        skillsGrid.appendChild(button);
+    });
+}
+
+// 更新升级显示
+function updateUpgradesDisplay() {
+    const upgradesGrid = document.getElementById('upgradesGrid');
+    upgradesGrid.innerHTML = '';
+    
+    Object.keys(gameState.skills).forEach(skillName => {
+        const skill = gameState.skills[skillName];
+        const cost = skill.level * 100;
+        const button = document.createElement('button');
+        button.className = 'upgrade-button';
+        button.textContent = `升级 ${skillName} - ${cost}金币`;
+        
+        if (gameState.character.gold < cost) {
+            button.disabled = true;
+        }
+        
+        button.onclick = () => upgradeSkill(skillName);
+        upgradesGrid.appendChild(button);
+    });
+}
+
+// 更新成就显示
+function updateAchievementsDisplay() {
+    const achievementsGrid = document.getElementById('achievementsGrid');
+    achievementsGrid.innerHTML = '';
+    
+    Object.keys(gameState.achievements).forEach(achievementKey => {
+        const achievement = gameState.achievements[achievementKey];
+        const div = document.createElement('div');
+        div.className = `achievement ${achievement.unlocked ? '' : 'locked'}`;
+        
+        div.innerHTML = `
+            <div class="achievement-name">${achievement.name} ${achievement.unlocked ? '✅' : '🔒'}</div>
+            <div class="achievement-description">${achievement.description}</div>
+            <div class="achievement-reward">奖励: ${achievement.reward} 金币</div>
+        `;
+        
+        achievementsGrid.appendChild(div);
+    });
+}
+
+// 游戏初始化
+function initGame() {
+    gameState.load();
+    
+    if (!gameState.currentEnemy) {
+        gameState.currentEnemy = generateEnemy();
+    }
+    
+    updateDisplay();
+    startAutoAttack();
+    
+    // 定期保存游戏
+    setInterval(() => {
+        gameState.save();
+    }, 10000); // 每10秒保存一次
+    
+    // 定期更新显示
+    setInterval(() => {
+        updateDisplay();
+    }, 1000); // 每秒更新一次
+    
+    addBattleLog("游戏开始！自动战斗已启动！");
+}
+
+// 页面加载完成后初始化游戏
+document.addEventListener('DOMContentLoaded', initGame);

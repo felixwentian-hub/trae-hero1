@@ -8,220 +8,86 @@
 </head>
 <body>
     <div class="game-container">
-        <!-- 游戏标题 -->
-        <header class="game-header">
-            <h1>极简放置类ARPG</h1>
+        <header>
+            <h1>极简放置类ARPG游戏</h1>
         </header>
-
-        <!-- 角色状态区 -->
-        <section class="character-status">
-            <h2>角色状态</h2>
+        
+        <div class="character-status">
             <div class="status-grid">
                 <div class="status-item">
                     <span class="label">等级:</span>
-                    <span id="character-level">1</span>
+                    <span id="level">1</span>
                 </div>
                 <div class="status-item">
-                    <span class="label">血量:</span>
-                    <span id="character-hp">100</span>/<span id="character-max-hp">100</span>
+                    <span class="label">生命值:</span>
+                    <span id="health">100/100</span>
                 </div>
                 <div class="status-item">
                     <span class="label">攻击力:</span>
-                    <span id="character-attack">10</span>
+                    <span id="attack">10</span>
                 </div>
-                <div class="status-item" id="shield-status" style="display: none;">
-                    <span class="label">护盾:</span>
-                    <span id="character-shield">0</span> 🛡️
+                <div class="status-item">
+                    <span class="label">防御力:</span>
+                    <span id="defense">5</span>
                 </div>
                 <div class="status-item">
                     <span class="label">经验值:</span>
-                    <span id="character-exp">0</span>/<span id="character-max-exp">100</span>
+                    <span id="experience">0/100</span>
                 </div>
+                <div class="status-item">
+                    <span class="label">金币:</span>
+                    <span id="gold">0</span>
+                </div>
+            </div>
+            <div class="experience-bar">
+                <div class="experience-fill" id="experienceBar"></div>
+            </div>
+        </div>
+        
+        <div class="battle-area">
+            <div class="character" id="character">
+                <div class="character-sprite">🧙‍♂️</div>
+                <div class="character-name">勇者</div>
             </div>
             
-            <!-- 经验条 -->
-            <div class="exp-bar-container">
-                <div class="exp-bar">
-                    <div id="exp-bar-fill" class="exp-bar-fill"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 战斗区域 -->
-        <section class="battle-area">
-            <h2>战斗区域</h2>
-            <div class="battle-field">
-                <!-- 角色 -->
-                <div class="character-side">
-                    <div class="character-avatar">⚔️</div>
-                    <div class="character-name">勇者</div>
-                    <div class="hp-bar-container">
-                        <div class="hp-bar character-hp-bar">
-                            <div id="character-hp-bar-fill" class="hp-bar-fill"></div>
-                        </div>
-                    </div>
-                    <div class="combo-display" id="combo-display" style="display: none;">
-                        <span class="combo-text">连击 x<span id="combo-count">0</span></span>
-                        <div class="combo-bar">
-                            <div class="combo-progress" id="combo-progress"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- VS标识 -->
-                <div class="vs-indicator">VS</div>
-
-                <!-- 敌人 -->
-                <div class="enemy-side">
-                    <div id="enemy-avatar" class="enemy-avatar">🟢</div>
-                    <div id="enemy-name" class="enemy-name">史莱姆</div>
-                    <div class="hp-bar-container">
-                        <div class="hp-bar enemy-hp-bar">
-                            <div id="enemy-hp-bar-fill" class="hp-bar-fill"></div>
-                        </div>
-                    </div>
-                    <div class="enemy-stats">
-                        <span>血量: <span id="enemy-hp">50</span>/<span id="enemy-max-hp">50</span></span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 技能区域 -->
-            <div class="skills-area">
-                <h3>技能</h3>
-                <div class="skills-container">
-                    <button id="fireball-btn" class="skill-btn" data-skill="fireball">
-                        <div class="skill-icon">🔥</div>
-                        <div class="skill-name">火球术</div>
-                        <div class="skill-cooldown" id="fireball-cooldown"></div>
-                    </button>
-                    <button id="heal-btn" class="skill-btn" data-skill="heal">
-                        <div class="skill-icon">💚</div>
-                        <div class="skill-name">治疗术</div>
-                        <div class="skill-cooldown" id="heal-cooldown"></div>
-                    </button>
-                    <button id="critical-btn" class="skill-btn" data-skill="critical">
-                        <div class="skill-icon">⚡</div>
-                        <div class="skill-name">暴击</div>
-                        <div class="skill-cooldown" id="critical-cooldown"></div>
-                    </button>
-                    <button id="lightning-chain-btn" class="skill-btn" data-skill="lightningChain">
-                        <div class="skill-icon">⚡</div>
-                        <div class="skill-name">闪电链</div>
-                        <div class="skill-cooldown" id="lightning-chain-cooldown"></div>
-                    </button>
-                    <button id="shield-btn" class="skill-btn" data-skill="shield">
-                        <div class="skill-icon">🛡️</div>
-                        <div class="skill-name">护盾术</div>
-                        <div class="skill-cooldown" id="shield-cooldown"></div>
-                    </button>
-                    <button id="berserk-btn" class="skill-btn" data-skill="berserk">
-                        <div class="skill-icon">🔥</div>
-                        <div class="skill-name">狂暴</div>
-                        <div class="skill-cooldown" id="berserk-cooldown"></div>
-                    </button>
-                    <button id="life-drain-btn" class="skill-btn" data-skill="lifeDrain">
-                        <div class="skill-icon">🩸</div>
-                        <div class="skill-name">生命汲取</div>
-                        <div class="skill-cooldown" id="life-drain-cooldown"></div>
-                    </button>
-                </div>
-            </div>
-
-            <!-- 特效显示区域 -->
-            <div class="effects-area" id="effects-area"></div>
-
-            <!-- 战斗日志 -->
-            <div class="battle-log">
-                <h3>战斗日志</h3>
-                <div id="battle-log-content" class="battle-log-content">
-                    <p>游戏开始！</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- 升级区域 -->
-        <section class="upgrade-area">
-            <h2>升级</h2>
-            <div class="upgrade-info">
-                <p>可用升级点: <span id="upgrade-points">0</span></p>
-            </div>
-            <div class="upgrade-buttons">
-                <button id="upgrade-hp-btn" class="upgrade-btn" disabled>
-                    升级血量 (+20 HP)
-                </button>
-                <button id="upgrade-attack-btn" class="upgrade-btn" disabled>
-                    升级攻击 (+5 攻击力)
-                </button>
-            </div>
+            <div class="vs-indicator">VS</div>
             
-            <h3>技能升级</h3>
-            <div class="skill-upgrade-grid">
-                <div class="skill-upgrade-item">
-                    <div class="skill-upgrade-info">
-                        <span class="skill-name">🔥 火球术</span>
-                        <span class="skill-level">等级: <span id="fireball-level">1</span>/5</span>
-                    </div>
-                    <button id="upgrade-fireball" class="skill-upgrade-btn">升级 (2点)</button>
-                </div>
-                
-                <div class="skill-upgrade-item">
-                    <div class="skill-upgrade-info">
-                        <span class="skill-name">💚 治疗术</span>
-                        <span class="skill-level">等级: <span id="heal-level">1</span>/5</span>
-                    </div>
-                    <button id="upgrade-heal" class="skill-upgrade-btn">升级 (2点)</button>
-                </div>
-                
-                <div class="skill-upgrade-item">
-                    <div class="skill-upgrade-info">
-                        <span class="skill-name">⚡ 暴击攻击</span>
-                        <span class="skill-level">等级: <span id="critical-level">1</span>/5</span>
-                    </div>
-                    <button id="upgrade-critical" class="skill-upgrade-btn">升级 (2点)</button>
-                </div>
-                
-                <div class="skill-upgrade-item">
-                    <div class="skill-upgrade-info">
-                        <span class="skill-name">⚡ 闪电链</span>
-                        <span class="skill-level">等级: <span id="lightningChain-level">1</span>/5</span>
-                    </div>
-                    <button id="upgrade-lightningChain" class="skill-upgrade-btn">升级 (3点)</button>
-                </div>
-                
-                <div class="skill-upgrade-item">
-                    <div class="skill-upgrade-info">
-                        <span class="skill-name">🛡️ 护盾术</span>
-                        <span class="skill-level">等级: <span id="shield-level">1</span>/5</span>
-                    </div>
-                    <button id="upgrade-shield" class="skill-upgrade-btn">升级 (3点)</button>
-                </div>
-                
-                <div class="skill-upgrade-item">
-                    <div class="skill-upgrade-info">
-                        <span class="skill-name">🔥 狂暴模式</span>
-                        <span class="skill-level">等级: <span id="berserk-level">1</span>/5</span>
-                    </div>
-                    <button id="upgrade-berserk" class="skill-upgrade-btn">升级 (4点)</button>
-                </div>
-                
-                <div class="skill-upgrade-item">
-                    <div class="skill-upgrade-info">
-                        <span class="skill-name">🩸 生命汲取</span>
-                        <span class="skill-level">等级: <span id="lifeDrain-level">1</span>/5</span>
-                    </div>
-                    <button id="upgrade-lifeDrain" class="skill-upgrade-btn">升级 (4点)</button>
-                </div>
+            <div class="enemy" id="enemy">
+                <div class="enemy-sprite" id="enemySprite">👹</div>
+                <div class="enemy-name" id="enemyName">哥布林</div>
+                <div class="enemy-health" id="enemyHealth">50/50</div>
             </div>
-        </section>
-
-        <!-- 游戏控制 -->
-        <section class="game-controls">
-            <button id="save-game-btn" class="control-btn">保存游戏</button>
-            <button id="reset-game-btn" class="control-btn reset-btn">重置游戏</button>
-        </section>
+        </div>
+        
+        <div class="skills-section">
+            <h3>技能</h3>
+            <div class="skills-grid" id="skillsGrid">
+                <!-- 技能按钮将通过JavaScript动态生成 -->
+            </div>
+        </div>
+        
+        <div class="battle-log">
+            <h3>战斗日志</h3>
+            <div class="log-content" id="battleLog">
+                <p>游戏开始！</p>
+            </div>
+        </div>
+        
+        <div class="upgrades-section">
+            <h3>升级</h3>
+            <div class="upgrades-grid" id="upgradesGrid">
+                <!-- 升级选项将通过JavaScript动态生成 -->
+            </div>
+        </div>
+        
+        <div class="achievements-section">
+            <h3>成就</h3>
+            <div class="achievements-grid" id="achievementsGrid">
+                <!-- 成就将通过JavaScript动态生成 -->
+            </div>
+        </div>
     </div>
-
+    
     <script src="game.js"></script>
 </body>
 </html>

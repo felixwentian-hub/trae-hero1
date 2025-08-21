@@ -1,4 +1,3 @@
-/* 全局样式 */
 * {
     margin: 0;
     padding: 0;
@@ -7,140 +6,212 @@
 
 body {
     font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #333;
     min-height: 100vh;
     padding: 20px;
-    color: #1565c0;
 }
 
-/* 游戏容器 */
 .game-container {
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
     background: rgba(255, 255, 255, 0.95);
     border-radius: 15px;
-    box-shadow: 0 8px 32px rgba(21, 101, 192, 0.2);
     padding: 20px;
-    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
-/* 游戏标题 */
-.game-header {
+header {
     text-align: center;
     margin-bottom: 30px;
-    padding: 20px;
-    background: linear-gradient(45deg, #1976d2, #42a5f5);
-    border-radius: 10px;
-    color: white;
-    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3);
 }
 
-.game-header h1 {
+header h1 {
+    color: #4a5568;
     font-size: 2.5em;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* 通用区域样式 */
-section {
-    margin-bottom: 25px;
+.character-status {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     padding: 20px;
-    background: rgba(255, 255, 255, 0.8);
     border-radius: 10px;
-    border: 2px solid #e3f2fd;
-    box-shadow: 0 2px 10px rgba(21, 101, 192, 0.1);
+    margin-bottom: 20px;
+    color: white;
 }
 
-section h2 {
-    color: #1565c0;
-    margin-bottom: 15px;
-    font-size: 1.5em;
-    border-bottom: 2px solid #42a5f5;
-    padding-bottom: 5px;
-}
-
-/* 角色状态区 */
 .status-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 15px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .status-item {
-    background: #f3f9ff;
-    padding: 15px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 10px;
     border-radius: 8px;
-    border: 1px solid #bbdefb;
     text-align: center;
 }
 
 .status-item .label {
     font-weight: bold;
-    color: #1565c0;
     display: block;
     margin-bottom: 5px;
 }
 
-/* 经验条 */
-.exp-bar-container {
-    margin-top: 15px;
-}
-
-.exp-bar {
+.experience-bar {
     width: 100%;
     height: 20px;
-    background: #e3f2fd;
+    background: rgba(255, 255, 255, 0.3);
     border-radius: 10px;
-    border: 2px solid #1976d2;
     overflow: hidden;
-    position: relative;
 }
 
-.exp-bar-fill {
+.experience-fill {
     height: 100%;
-    background: linear-gradient(90deg, #4caf50, #81c784);
+    background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
     width: 0%;
     transition: width 0.5s ease;
-    border-radius: 8px;
 }
 
-/* 战斗区域 */
-.battle-field {
+.battle-area {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
     align-items: center;
-    margin-bottom: 20px;
-    padding: 20px;
-    background: #f8fbff;
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    padding: 30px;
     border-radius: 10px;
-    border: 2px solid #e1f5fe;
+    margin-bottom: 20px;
+    min-height: 200px;
 }
 
-.character-side, .enemy-side {
+.character, .enemy {
     text-align: center;
-    flex: 1;
+    padding: 20px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
 }
 
-.character-avatar, .enemy-avatar {
+.character-sprite, .enemy-sprite {
     font-size: 4em;
     margin-bottom: 10px;
-    animation: bounce 2s infinite;
+    display: block;
+}
+
+.character-name, .enemy-name {
+    font-weight: bold;
+    font-size: 1.2em;
+    margin-bottom: 5px;
+}
+
+.enemy-health {
+    color: #e53e3e;
+    font-weight: bold;
+}
+
+.vs-indicator {
+    font-size: 2em;
+    font-weight: bold;
+    color: #4a5568;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.skills-section, .upgrades-section, .achievements-section {
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.skills-section h3, .upgrades-section h3, .achievements-section h3 {
+    color: #4a5568;
+    margin-bottom: 15px;
+    font-size: 1.5em;
+}
+
+.skills-grid, .upgrades-grid, .achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.skill-button, .upgrade-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
     transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* 攻击动画 */
-.character-avatar.attacking {
-    animation: attack-hero 0.6s ease-in-out;
+.skill-button:hover, .upgrade-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
-.enemy-avatar.attacking {
-    animation: attack-enemy 0.6s ease-in-out;
+.skill-button:disabled, .upgrade-button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
 }
 
-.character-avatar.hit, .enemy-avatar.hit {
-    animation: hit-shake 0.5s ease-in-out;
+.achievement {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 5px solid #48bb78;
 }
 
+.achievement.locked {
+    border-left-color: #ccc;
+    opacity: 0.6;
+}
+
+.achievement-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.achievement-description {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.battle-log {
+    background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.battle-log h3 {
+    color: #4a5568;
+    margin-bottom: 15px;
+    font-size: 1.5em;
+}
+
+.log-content {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 15px;
+    border-radius: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+.log-content p {
+    margin-bottom: 5px;
+    padding: 2px 0;
+}
+
+/* 动画效果 */
 @keyframes bounce {
     0%, 20%, 50%, 80%, 100% {
         transform: translateY(0);
@@ -153,39 +224,31 @@ section h2 {
     }
 }
 
-@keyframes attack-hero {
-    0% { transform: translateX(0) scale(1); }
-    30% { transform: translateX(20px) scale(1.1); }
-    60% { transform: translateX(10px) scale(1.05); }
-    100% { transform: translateX(0) scale(1); }
+@keyframes attack {
+    0% {
+        transform: translateX(0);
+    }
+    50% {
+        transform: translateX(20px);
+    }
+    100% {
+        transform: translateX(0);
+    }
 }
 
-@keyframes attack-enemy {
-    0% { transform: translateX(0) scale(1); }
-    30% { transform: translateX(-20px) scale(1.1); }
-    60% { transform: translateX(-10px) scale(1.05); }
-    100% { transform: translateX(0) scale(1); }
-}
-
-@keyframes hit-shake {
-    0%, 100% { transform: translateX(0); }
-    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-    20%, 40%, 60%, 80% { transform: translateX(5px); }
-}
-
-.character-name, .enemy-name {
-    font-weight: bold;
-    font-size: 1.2em;
-    margin-bottom: 10px;
-    color: #1565c0;
-}
-
-.vs-indicator {
-    font-size: 2em;
-    font-weight: bold;
-    color: #f44336;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    animation: pulse 1.5s infinite;
+@keyframes hit {
+    0% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-10px);
+    }
+    75% {
+        transform: translateX(10px);
+    }
+    100% {
+        transform: translateX(0);
+    }
 }
 
 @keyframes pulse {
@@ -193,798 +256,45 @@ section h2 {
         transform: scale(1);
     }
     50% {
-        transform: scale(1.1);
+        transform: scale(1.05);
     }
     100% {
         transform: scale(1);
     }
 }
 
-/* 血量条 */
-.hp-bar-container {
-    margin: 10px 0;
+.bounce {
+    animation: bounce 0.6s;
 }
 
-.hp-bar {
-    width: 150px;
-    height: 15px;
-    background: #ffebee;
-    border-radius: 8px;
-    border: 2px solid #f44336;
-    overflow: hidden;
-    margin: 0 auto;
+.attack {
+    animation: attack 0.4s;
 }
 
-.hp-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #f44336, #ef5350);
-    width: 100%;
-    transition: width 0.3s ease;
-    border-radius: 6px;
+.hit {
+    animation: hit 0.4s;
 }
 
-.character-hp-bar .hp-bar-fill {
-    background: linear-gradient(90deg, #4caf50, #66bb6a);
-}
-
-.enemy-stats {
-    font-size: 0.9em;
-    color: #666;
-    margin-top: 5px;
-}
-
-/* 技能区域 */
-.skills-area {
-    background: #f3f9ff;
-    border-radius: 8px;
-    padding: 15px;
-    border: 2px solid #bbdefb;
-    margin-bottom: 20px;
-}
-
-.skills-area h3 {
-    color: #1565c0;
-    margin-bottom: 15px;
-    font-size: 1.2em;
-    text-align: center;
-}
-
-.skills-container {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.skill-btn {
-    background: linear-gradient(45deg, #9c27b0, #ba68c8);
-    color: white;
-    border: none;
-    padding: 15px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
-    min-width: 100px;
-    position: relative;
-    overflow: hidden;
-}
-
-.skill-btn:hover:not(:disabled) {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 8px 25px rgba(156, 39, 176, 0.4);
-}
-
-.skill-btn:disabled {
-    background: #bdbdbd;
-    cursor: not-allowed;
-    box-shadow: none;
-    transform: none;
-}
-
-.skill-btn:active:not(:disabled) {
-    transform: translateY(-1px) scale(1.02);
-    animation: skillCast 0.5s ease;
-}
-
-@keyframes skillCast {
-    0% { transform: translateY(-1px) scale(1.02); }
-    50% { transform: translateY(-3px) scale(1.1); box-shadow: 0 0 20px rgba(156, 39, 176, 0.8); }
-    100% { transform: translateY(-1px) scale(1.02); }
-}
-
-.skill-icon {
-    font-size: 2em;
-    margin-bottom: 5px;
-    animation: skillIconFloat 2s ease-in-out infinite;
-}
-
-@keyframes skillIconFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
-}
-
-.skill-name {
-    font-size: 0.9em;
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.skill-cooldown {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2em;
-    font-weight: bold;
-    border-radius: 10px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.skill-cooldown.active {
-    opacity: 1;
-}
-
-/* 连击显示 */
-.combo-display {
-    margin-top: 10px;
-    text-align: center;
-    animation: combo-pulse 0.5s ease-in-out;
-}
-
-.combo-text {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #ff6b35;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-}
-
-.combo-bar {
-    width: 100px;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 3px;
-    margin: 5px auto;
-    overflow: hidden;
-}
-
-.combo-progress {
-    height: 100%;
-    background: linear-gradient(90deg, #ff6b35, #f7931e);
-    border-radius: 3px;
-    transition: width 0.3s ease;
-}
-
-@keyframes combo-pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
-
-/* 特效区域 */
-.effects-area {
-    position: relative;
-    height: 60px;
-    margin-bottom: 20px;
-    overflow: hidden;
-    border-radius: 8px;
-    background: linear-gradient(45deg, rgba(156, 39, 176, 0.1), rgba(186, 104, 200, 0.1));
-    border: 1px dashed #9c27b0;
-}
-
-.damage-number {
-    position: absolute;
-    font-size: 1.5em;
-    font-weight: bold;
-    color: #f44336;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    animation: damageFloat 2s ease-out forwards;
-    pointer-events: none;
-    z-index: 10;
-}
-
-.damage-number.critical {
-    color: #ff6b6b;
-    font-weight: bold;
-    text-shadow: 0 0 10px #ff6b6b;
-}
-
-.damage-number.heal {
-    color: #51cf66;
-    font-weight: bold;
-    text-shadow: 0 0 10px #51cf66;
-}
-
-.damage-number.lightning {
-    color: #74c0fc;
-    font-weight: bold;
-    text-shadow: 0 0 15px #74c0fc;
-    animation: lightning-flash 0.5s ease-out;
-}
-
-.damage-number.shield {
-    color: #ffd43b;
-    font-weight: bold;
-    text-shadow: 0 0 10px #ffd43b;
-}
-
-@keyframes lightning-flash {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; transform: scale(1.2); }
-}
-
-/* 屏幕震动效果 */
-@keyframes screen-shake {
-    0%, 100% { transform: translate(0, 0); }
-    10% { transform: translate(-2px, -1px); }
-    20% { transform: translate(2px, 1px); }
-    30% { transform: translate(-1px, 2px); }
-    40% { transform: translate(1px, -2px); }
-    50% { transform: translate(-2px, 1px); }
-    60% { transform: translate(2px, -1px); }
-    70% { transform: translate(-1px, -2px); }
-    80% { transform: translate(1px, 2px); }
-    90% { transform: translate(-2px, -1px); }
-}
-
-.screen-shake {
-    animation: screen-shake 0.5s ease-in-out;
-}
-
-/* 暴击闪光效果 */
-@keyframes critical-flash {
-    0% { 
-        box-shadow: inset 0 0 0 0 rgba(255, 215, 0, 0);
-        background-color: transparent;
-    }
-    50% { 
-        box-shadow: inset 0 0 50px 10px rgba(255, 215, 0, 0.3);
-        background-color: rgba(255, 215, 0, 0.1);
-    }
-    100% { 
-        box-shadow: inset 0 0 0 0 rgba(255, 215, 0, 0);
-        background-color: transparent;
-    }
-}
-
-.critical-flash {
-    animation: critical-flash 0.3s ease-out;
-}
-
-/* 技能特效增强 */
-.skill-effect-lightning {
-    position: absolute;
-    font-size: 3em;
-    color: #74c0fc;
-    text-shadow: 0 0 20px #74c0fc;
-    animation: lightning-burst 1s ease-out;
-    pointer-events: none;
-    z-index: 1000;
-}
-
-.skill-effect-shield {
-    position: absolute;
-    font-size: 3em;
-    color: #ffd43b;
-    text-shadow: 0 0 20px #ffd43b;
-    animation: shield-expand 1s ease-out;
-    pointer-events: none;
-    z-index: 1000;
-}
-
-.skill-effect-berserk {
-    position: absolute;
-    font-size: 3em;
-    color: #ff6b6b;
-    text-shadow: 0 0 20px #ff6b6b;
-    animation: berserk-rage 1s ease-out;
-    pointer-events: none;
-    z-index: 1000;
-}
-
-.skill-effect-lifedrain {
-    position: absolute;
-    font-size: 3em;
-    color: #e64980;
-    text-shadow: 0 0 20px #e64980;
-    animation: life-drain-pulse 1s ease-out;
-    pointer-events: none;
-    z-index: 1000;
-}
-
-@keyframes lightning-burst {
-    0% { transform: scale(0.5) rotate(0deg); opacity: 1; }
-    50% { transform: scale(1.5) rotate(180deg); opacity: 0.8; }
-    100% { transform: scale(2) rotate(360deg); opacity: 0; }
-}
-
-@keyframes shield-expand {
-    0% { transform: scale(0.3); opacity: 1; }
-    50% { transform: scale(1.2); opacity: 0.8; }
-    100% { transform: scale(1.8); opacity: 0; }
-}
-
-@keyframes berserk-rage {
-    0% { transform: scale(0.5); opacity: 1; color: #ff6b6b; }
-    25% { transform: scale(1.2); opacity: 0.9; color: #ff8787; }
-    50% { transform: scale(0.8); opacity: 0.7; color: #ffa8a8; }
-    75% { transform: scale(1.5); opacity: 0.5; color: #ff6b6b; }
-    100% { transform: scale(2); opacity: 0; color: #ff8787; }
-}
-
-@keyframes life-drain-pulse {
-    0% { transform: scale(0.8); opacity: 1; }
-    33% { transform: scale(1.3); opacity: 0.8; }
-    66% { transform: scale(0.9); opacity: 0.6; }
-    100% { transform: scale(1.6); opacity: 0; }
-}
-
-/* 粒子特效系统 */
-.particle {
-    position: absolute;
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 1000;
-}
-
-.particle-combo {
-    background: radial-gradient(circle, #ffd700, #ff6b35);
-    animation: particle-float 2s ease-out forwards;
-    box-shadow: 0 0 6px #ffd700;
-}
-
-.particle-critical {
-    background: radial-gradient(circle, #ff0080, #ff6b35);
-    animation: particle-explode 1.5s ease-out forwards;
-    box-shadow: 0 0 8px #ff0080;
-}
-
-.particle-skill {
-    background: radial-gradient(circle, #00ffff, #0080ff);
-    animation: particle-spiral 2s ease-out forwards;
-    box-shadow: 0 0 6px #00ffff;
-}
-
-@keyframes particle-float {
-    0% {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-    }
-    100% {
-        transform: translateY(-100px) scale(0);
-        opacity: 0;
-    }
-}
-
-@keyframes particle-explode {
-    0% {
-        transform: scale(1);
-        opacity: 1;
-    }
-    50% {
-        transform: scale(2);
-        opacity: 0.8;
-    }
-    100% {
-        transform: scale(0);
-        opacity: 0;
-    }
-}
-
-@keyframes particle-spiral {
-    0% {
-        transform: rotate(0deg) translateX(0) scale(1);
-        opacity: 1;
-    }
-    100% {
-        transform: rotate(720deg) translateX(50px) scale(0);
-        opacity: 0;
-    }
-}
-
-/* 连击特效 */
-.combo-effect {
-    position: absolute;
-    top: 30%;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 2em;
-    font-weight: bold;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-    pointer-events: none;
-    z-index: 1001;
-    animation: combo-bounce 2s ease-out forwards;
-}
-
-.combo-normal {
-    color: #ffd700;
-    text-shadow: 0 0 10px #ffd700;
-}
-
-.combo-epic {
-    color: #ff6b35;
-    text-shadow: 0 0 15px #ff6b35;
-    font-size: 2.5em;
-}
-
-.combo-legendary {
-    color: #ff0080;
-    text-shadow: 0 0 20px #ff0080;
-    font-size: 3em;
-    animation: combo-legendary 2s ease-out forwards;
-}
-
-@keyframes combo-bounce {
-    0% {
-        transform: translateX(-50%) scale(0) rotate(-10deg);
-        opacity: 0;
-    }
-    20% {
-        transform: translateX(-50%) scale(1.2) rotate(5deg);
-        opacity: 1;
-    }
-    40% {
-        transform: translateX(-50%) scale(0.9) rotate(-2deg);
-        opacity: 1;
-    }
-    60% {
-        transform: translateX(-50%) scale(1.1) rotate(1deg);
-        opacity: 1;
-    }
-    80% {
-        transform: translateX(-50%) scale(1) rotate(0deg);
-        opacity: 1;
-    }
-    100% {
-        transform: translateX(-50%) scale(0.8) rotate(0deg);
-        opacity: 0;
-    }
-}
-
-@keyframes combo-legendary {
-    0% {
-        transform: translateX(-50%) scale(0) rotate(-20deg);
-        opacity: 0;
-        filter: hue-rotate(0deg);
-    }
-    15% {
-        transform: translateX(-50%) scale(1.5) rotate(10deg);
-        opacity: 1;
-        filter: hue-rotate(90deg);
-    }
-    30% {
-        transform: translateX(-50%) scale(1.2) rotate(-5deg);
-        opacity: 1;
-        filter: hue-rotate(180deg);
-    }
-    50% {
-        transform: translateX(-50%) scale(1.3) rotate(3deg);
-        opacity: 1;
-        filter: hue-rotate(270deg);
-    }
-    70% {
-        transform: translateX(-50%) scale(1.1) rotate(-1deg);
-        opacity: 1;
-        filter: hue-rotate(360deg);
-    }
-    100% {
-        transform: translateX(-50%) scale(0.5) rotate(0deg);
-        opacity: 0;
-        filter: hue-rotate(450deg);
-    }
-}
-
-@keyframes damageFloat {
-    0% {
-        transform: translateY(0) scale(0.5);
-        opacity: 0;
-    }
-    20% {
-        transform: translateY(-10px) scale(1.2);
-        opacity: 1;
-    }
-    100% {
-        transform: translateY(-50px) scale(0.8);
-        opacity: 0;
-    }
-}
-
-.skill-effect {
-    position: absolute;
-    font-size: 3em;
-    animation: skillEffectShow 1s ease-out forwards;
-    pointer-events: none;
-    z-index: 5;
-}
-
-@keyframes skillEffectShow {
-    0% {
-        transform: scale(0) rotate(0deg);
-        opacity: 0;
-    }
-    50% {
-        transform: scale(1.5) rotate(180deg);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(0.5) rotate(360deg);
-        opacity: 0;
-    }
-}
-
-/* 战斗日志 */
-.battle-log {
-    background: #fafafa;
-    border-radius: 8px;
-    padding: 15px;
-    border: 1px solid #e0e0e0;
-}
-
-.battle-log h3 {
-    color: #1565c0;
-    margin-bottom: 10px;
-    font-size: 1.2em;
-}
-
-.battle-log-content {
-    max-height: 150px;
-    overflow-y: auto;
-    font-size: 0.9em;
-    line-height: 1.4;
-}
-
-.battle-log-content p {
-    margin-bottom: 5px;
-    padding: 5px;
-    background: white;
-    border-radius: 4px;
-    border-left: 3px solid #42a5f5;
-}
-
-/* 升级区域 */
-.upgrade-info {
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 1.2em;
-    font-weight: bold;
-    color: #1565c0;
-}
-
-.upgrade-section {
-    background: linear-gradient(135deg, #2c3e50, #34495e);
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-}
-
-.upgrade-section h3 {
-    color: #ecf0f1;
-    margin-bottom: 15px;
-    text-align: center;
-    font-size: 1.2em;
-}
-
-.upgrade-points {
-    color: #f39c12;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 15px;
-    font-size: 1.1em;
-}
-
-.upgrade-buttons {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin-bottom: 25px;
-}
-
-.upgrade-btn {
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s ease;
-}
-
-.upgrade-btn:hover {
-    background: linear-gradient(135deg, #c0392b, #a93226);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-}
-
-.upgrade-btn:disabled {
-    background: #7f8c8d;
-    cursor: not-allowed;
-    transform: none;
-}
-
-/* 技能升级网格 */
-.skill-upgrade-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 15px;
-    margin-top: 15px;
-}
-
-.skill-upgrade-item {
-    background: linear-gradient(135deg, #34495e, #2c3e50);
-    padding: 15px;
-    border-radius: 8px;
-    border: 2px solid #3498db;
-    transition: all 0.3s ease;
-}
-
-.skill-upgrade-item:hover {
-    border-color: #e74c3c;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.4);
-}
-
-.skill-upgrade-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.skill-name {
-    color: #ecf0f1;
-    font-weight: bold;
-    font-size: 1em;
-}
-
-.skill-level {
-    color: #f39c12;
-    font-size: 0.9em;
-    font-weight: bold;
-}
-
-.skill-upgrade-btn {
-    width: 100%;
-    background: linear-gradient(135deg, #27ae60, #229954);
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    font-size: 0.9em;
-}
-
-.skill-upgrade-btn:hover {
-    background: linear-gradient(135deg, #229954, #1e8449);
-    transform: translateY(-1px);
-    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
-}
-
-.skill-upgrade-btn:disabled {
-    background: #7f8c8d;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-.skill-upgrade-btn.max-level {
-    background: linear-gradient(135deg, #f39c12, #e67e22);
-    cursor: default;
-}
-
-.skill-upgrade-btn.max-level:hover {
-    transform: none;
-    background: linear-gradient(135deg, #f39c12, #e67e22);
-}
-
-/* 游戏控制 */
-.game-controls {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.control-btn {
-    background: linear-gradient(45deg, #1976d2, #42a5f5);
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-size: 1em;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3);
-}
-
-.control-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
-}
-
-.reset-btn {
-    background: linear-gradient(45deg, #f44336, #ef5350);
-    box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
-}
-
-.reset-btn:hover {
-    box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+.pulse {
+    animation: pulse 0.3s;
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-    .game-container {
-        padding: 15px;
-        margin: 10px;
-    }
-    
-    .game-header h1 {
-        font-size: 2em;
-    }
-    
-    .battle-field {
+    .battle-area {
         flex-direction: column;
         gap: 20px;
     }
     
     .vs-indicator {
-        order: 2;
-        margin: 10px 0;
-    }
-    
-    .character-side {
-        order: 1;
-    }
-    
-    .enemy-side {
-        order: 3;
+        transform: rotate(90deg);
     }
     
     .status-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .skills-grid, .upgrades-grid, .achievements-grid {
         grid-template-columns: 1fr;
-    }
-    
-    .upgrade-buttons, .game-controls {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .upgrade-btn, .control-btn {
-        width: 100%;
-        max-width: 300px;
-    }
-}
-
-@media (max-width: 480px) {
-    body {
-        padding: 10px;
-    }
-    
-    .game-container {
-        padding: 10px;
-    }
-    
-    section {
-        padding: 15px;
-    }
-    
-    .character-avatar, .enemy-avatar {
-        font-size: 3em;
-    }
-    
-    .vs-indicator {
-        font-size: 1.5em;
     }
 }
